@@ -1,0 +1,52 @@
+int poorPigs(int buckets, int minutesToDie, int minutesToTest){
+    // Base condition
+    if (buckets-- == 1)
+            return 0;
+    // Calculate the max time for a pig to test buckets , Note that, max time will not be (minutesToTest / minutesToDie) , Thinking about all pigs drinking all buckets at last, but no one died immediately, so the poison bucket is the last bucket.
+    int max_time = ((minutesToTest / minutesToDie) + 1) , req_pigs = 0; // Initialize the required minimum number of pigs , Process to find the minimum number of pigs 
+    while (buckets > 0)
+    {
+        buckets /= max_time;
+        req_pigs++;
+    }
+    return req_pigs; // Return the required minimum number of pigs
+}
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+int poorPigs(int buckets, int minutesToDie, int minutesToTest) 
+{
+    return (int)ceil(log(buckets) / (log(minutesToTest / minutesToDie + 1)));
+}
+**************************** Explanation *******************************************
+notation :
+n ^ k = n * n * ... * n ( k times )
+n! = n * (n - 1) * ... * 1
+C(n, k) = n! / (k! * (n - k)!)
+
+required knowledge :
+
+binominal thoerem : (a +b) ^ n = summation (k from 0 to n) ( C(n, k) * a ^ k * b ^ (n - k) )
+
+detail: https://en.wikipedia.org/wiki/Binomial_theorem
+
+First, minutesToTest and minutesToDie simply tells us how many rounds we can use the pigs, i.e. how many times a pig can eat, that's all. So, we can declare a variable called r = minutesToTest / minutsToDie
+
+We suppose that we have p pigs, now we define b(r,p) as the maximum amount of buckets that we can test with ppigs in rrounds, then we try to prove the following result.
+
+b(r,p) = (r+1)^p or int b(int r,int p){ return pow(r+1,p); }
+
+Here we'll use mathematical induction to prove it.
+
+Let's start from the case r == 1
+With only 1 pig, we can test 2 buckets (make it eat 1 of them, see if it dies.)
+With 2 pigs ( named as A, B), we can test 4 buckets (one bucket only eaten by A, one only by B, one by both A and B, and one by nobody)
+With 3 pigs (A, B, C), we can test 8 buckets (O, A, B, C, AB, AC, BC, ABC, this means the buckets are tested by which pigs)
+In conclusion, We can see that for ppigs, there are C(p,k) buckets tested by k pigs, so we can test C(p,0) + C(p,1) + C(p,2) +... +C(p,p) buckets, which is equivalent to b(1,p) = 2^p by binominal theorem
+
+for r >= 2, we can have an answer by using the previous result.
+For ppigs, we can test each bucket with 0,1,2,...,p pigs. If we fix thekpigs with whom we're going to test the buckets, then we can test up tob(r-1,p - k) buckets. Because if these k pigs die we'll have p - k pigs for r - 1 rounds. We can find out which bucket is poisionous among these b(r-1, p-k) buckets in r - 1 rounds by the definition of b(r - 1, p - k). Also, we have C(p,k) combinations for k pigs among all the p pigs. Hence, those buckets can be classifed as tested by 0,1,...,p pigs, and there will be at most C(p,k) * b(r - 1, p - k) buckets tested by k pigs . Then, we can aquire this result : b(r,p) = summation (k from 0 to p) ( C(p,k) * b(r - 1, p - k) ) by induction hypothesis and C(p, k) = C(p, p - k), it equals to summation (k from 0 to p) ( C(p, p - k) * r ^ (p - k) ) = summation (k from 0 to p) ( C(p, k) * r ^ k * 1 ^ (p - k) ) = (r + 1) ^ pby binominal theorem.
+
+In conclusion, we try to find the minimum integer p such that b(r, p) >= buckets, which is equivalent to (r + 1) ^ p >= buckets, so p >= ( log(buckets) / log(r + 1) ), and here we use the ceiling function and log function provided by math.h, then the return value must be ceil( log (buckets) / log (r + 1))
+
